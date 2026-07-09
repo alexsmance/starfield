@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Starfield</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+      font-family: system-ui, sans-serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .control-group {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 10;
+      padding: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      border-radius: 0.5rem;      
+    }
+
+    .control-group .control:first-child {
+      margin-bottom: 0.5rem;
+    }
+
+    .control-group .control label {
+      display: block;
+      font-weight: bold;
+      font-size: 0.8rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .control-group .control:first-child {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #ignition {
+      width: 2rem;
+      height: 2rem;
+      background-color: red;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      /* box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); */
+      box-shadow: 0 2px 2px 0 rgba(255, 0, 0, 0.5), 0 1px 5px 0 rgba(255, 0, 0, 0.5), 0 3px 1px -2px rgba(255, 0, 0, 0.5);
+    }
+
+    #ignition:active, #ignition.ignition-activate:active {
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+
+    #ignition.ignition-activate {
+      background-color: green;
+      /* box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); */
+      box-shadow: 0 2px 2px 0 rgba(0, 255, 0, 0.25), 0 1px 5px 0 rgba(0, 255, 0, 0.25), 0 3px 1px -2px rgba(0, 255, 0, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  <div class="control-group">
+    <div class="control">
+      <button type="button" id="ignition"></button>
+    </div>
+    <div class="control">
+      <label for="starCount">Star Count</label>
+      <input type="range" id="starCount" min="500" max="2000" value="1000"/>
+    </div>
+    <div class="control">
+      <label for="speedInput">Speed</label>
+      <input type="range" id="speedInput" min="1" max="255" value="128"/>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('starfield');
+    const starCountInput = document.getElementById('starCount');
+    const speedInput = document.getElementById('speedInput');
+    const ignitionButton = document.getElementById('ignition');
+    const ctx = canvas.getContext('2d');
+
+    let stars = [];
+    const numStars = 2000;
+    var speed = 128.0;
+    var animationRequestId;
+    var isAnimated = true;
+
+
+    function init() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      stars = [];
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          z: Math.random() * canvas.width
+        });
+      }
+    }
+
+    function update() {
+      for (let star of stars) {
+        star.z -= 2;
+        if (star.z <= 0) {
+          star.x = Math.random() * canvas.width;
+          star.y = Math.random() * canvas.height;
+          star.z = canvas.width;
+        }
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let star of stars) {        
+        const k = speed / star.z;
+        const x = (star.x - canvas.width / 2) * k + canvas.width / 2;
+        const y = (star.y - canvas.height / 2) * k + canvas.height / 2;
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+          const size = (1 - star.z / canvas.width) * 5;
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.ellipse(x, y, size, size, 0, 0, Math.PI * 2);
+          ctx.fill();          
+        }
+      }
+    }
+
+    function animate() {
+      update();
+      draw();
+      animationRequestId = requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', init);
+
+    starCountInput.addEventListener('input', () => {
+      const newStarCount = parseInt(starCountInput.value);
+      stars = stars.slice(0, newStarCount);
+      while (stars.length < newStarCount) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          z: Math.random() * canvas.width
+        });
+      }
+    });
+
+    speedInput.addEventListener('input', () => {
+      speed = parseFloat(256 - speedInput.value);
+      animate();
+    });
+
+    ignitionButton.addEventListener('click', () => {
+      if (isAnimated) {
+        for (let i = speed; i < 1; i -= 10) {
+          speed = i;
+        }
+        cancelAnimationFrame(animationRequestId);
+        isAnimated = false;
+        ignitionButton.classList.add('ignition-activate');
+      } 
+      else {        
+        animate();
+        isAnimated = true;
+        ignitionButton.classList.remove('ignition-activate');
+      }
+    });
+
+    init();
+    animate();
+  </script>
+</body>
+</html>

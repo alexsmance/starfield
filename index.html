@@ -130,7 +130,7 @@
         const x = (star.x - canvas.width / 2) * k + canvas.width / 2;
         const y = (star.y - canvas.height / 2) * k + canvas.height / 2;
         if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
-          const size = (1 - star.z / canvas.width) * 5;
+          const size = (1 - star.z / canvas.width) * 1;
           ctx.fillStyle = 'white';
           ctx.beginPath();
           ctx.ellipse(x, y, size, size, 0, 0, Math.PI * 2);
@@ -160,15 +160,11 @@
     });
 
     speedInput.addEventListener('input', () => {
-      speed = parseFloat(256 - speedInput.value);
-      animate();
+      speed = parseFloat(speedInput.value);      
     });
 
     ignitionButton.addEventListener('click', () => {
       if (isAnimated) {
-        for (let i = speed; i < 1; i -= 10) {
-          speed = i;
-        }
         cancelAnimationFrame(animationRequestId);
         isAnimated = false;
         ignitionButton.classList.add('ignition-activate');
